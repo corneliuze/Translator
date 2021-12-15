@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-//    Make api call and translate
+    //    Make api call and translate
     private fun translate(word:String){
         val okHttpClient = OkHttpClient()
         val requestBody = FormBody.Builder().add("yor_text",word).build()
@@ -69,24 +69,24 @@ class MainActivity : AppCompatActivity() {
             .url(URI)
             .build()
         okHttpClient.newCall(request).enqueue(object : Callback{
-//            If my request fails or something happens
+            //            If my request fails or something happens
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
                     Toast.makeText(this@MainActivity,e.message.toString(),Toast.LENGTH_LONG).show()
                 }
             }
 
-//            If request is a success
+            //            If request is a success
             @RequiresApi(Build.VERSION_CODES.N)
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
-                val gson = GsonBuilder().create().fromJson(body,TranslateObject::class.java)
+                val gson = GsonBuilder().create().fromJson(body,TranslationObject::class.java)
                 runOnUiThread {
-                    if(gson.result.isEmpty()){
+                    if(gson.result.word.isEmpty()){
                         Toast.makeText(this@MainActivity,"Word not found",Toast.LENGTH_LONG).show()
                     }else{
                         clearButton.isVisible = true
-                        translateHistory.add(0, Helper(gson,word))
+                        translateHistory.add(0, Helper(gson, word))
                         recyclerView.adapter = AppAdaptor()
                         AppAdaptor().notifyItemInserted(0)
                     }
@@ -99,8 +99,8 @@ class MainActivity : AppCompatActivity() {
 }
 
 //App Models
-data class TranslateObject(val result:List<String>)
-data class Helper(val translated:TranslateObject,val yorubaWord:String)
+data class TranslateObject(val result:List<List<String>>)
+data class Helper(val translated:TranslationObject, val yorubaWord:String)
 var translateHistory:MutableList<Helper> = mutableListOf()
 
 
@@ -114,22 +114,33 @@ internal class AppAdaptor : RecyclerView.Adapter<MyViewHolder>(){
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.itemView.yorubaWord.text = translateHistory[position].yorubaWord
         when (
-            translateHistory[position].translated.result.count()
+            translateHistory[position].translated.result.word.count()
         ){
             1 -> {
-                holder.itemView.englishWord.text =translateHistory[position].translated.result[0]
+                holder.itemView.englishWord.text =translateHistory[position].translated.result.word[0]
+                holder.itemView.englishExample.text =translateHistory[position].translated.result.examples[0]
                 holder.itemView.englishWord1.isVisible = false
                 holder.itemView.englishWord2.isVisible = false
+                holder.itemView.englishExample1.isVisible = false
+                holder.itemView.englishExample2.isVisible = false
+
             }
             2->{
-                holder.itemView.englishWord1.text = translateHistory[position].translated.result[1]
-                holder.itemView.englishWord.text = translateHistory[position].translated.result[0]
+                holder.itemView.englishWord1.text = translateHistory[position].translated.result.word[1]
+                holder.itemView.englishExample1.text =translateHistory[position].translated.result.examples[1]
+                holder.itemView.englishWord.text = translateHistory[position].translated.result.word[0]
+                holder.itemView.englishExample.text =translateHistory[position].translated.result.examples[0]
                 holder.itemView.englishWord2.isVisible = false
+                holder.itemView.englishExample2.isVisible = false
+
             }
             3->{
-                holder.itemView.englishWord1.text = translateHistory[position].translated.result[0]
-                holder.itemView.englishWord.text = translateHistory[position].translated.result[1]
-                holder.itemView.englishWord2.text = translateHistory[position].translated.result[2]
+                holder.itemView.englishWord1.text = translateHistory[position].translated.result.word[1]
+                holder.itemView.englishExample.text =translateHistory[position].translated.result.examples[1]
+                holder.itemView.englishWord.text = translateHistory[position].translated.result.word[0]
+                holder.itemView.englishExample1.text =translateHistory[position].translated.result.examples[0]
+                holder.itemView.englishWord2.text = translateHistory[position].translated.result.word[2]
+                holder.itemView.englishExample2.text =translateHistory[position].translated.result.examples[2]
             }
         }
     }
